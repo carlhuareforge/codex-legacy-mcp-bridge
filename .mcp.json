@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "legacy-sse-bridge": {
+      "note": "This plugin uses install.py to write the authoritative stdio MCP entry into ~/.codex/config.toml. The bundled bridge script lives under ./scripts/legacy_sse_mcp_bridge.py."
+    }
+  }
+}

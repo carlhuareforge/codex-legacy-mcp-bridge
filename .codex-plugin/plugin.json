@@ -1,0 +1,31 @@
+{
+  "name": "codex-legacy-mcp-bridge",
+  "version": "0.1.0",
+  "description": "Bridge legacy SSE MCP servers into a stdio MCP server Codex can use.",
+  "author": {
+    "name": "Carl Hua",
+    "url": "https://github.com/carlhuareforge"
+  },
+  "homepage": "https://github.com/carlhuareforge/codex-legacy-mcp-bridge",
+  "repository": "https://github.com/carlhuareforge/codex-legacy-mcp-bridge",
+  "license": "MIT",
+  "keywords": ["codex", "mcp", "sse", "bridge", "plugin"],
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Codex Legacy MCP Bridge",
+    "shortDescription": "Install legacy SSE MCP servers as normal Codex MCPs.",
+    "longDescription": "Adds a generic local stdio bridge so Codex can use older SSE-based MCP servers that are not yet streamable HTTP.",
+    "developerName": "Carl Hua",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Write"],
+    "websiteURL": "https://github.com/carlhuareforge/codex-legacy-mcp-bridge",
+    "privacyPolicyURL": "https://github.com/carlhuareforge/codex-legacy-mcp-bridge",
+    "termsOfServiceURL": "https://github.com/carlhuareforge/codex-legacy-mcp-bridge",
+    "defaultPrompt": [
+      "Install a legacy SSE MCP server for Codex.",
+      "Bridge an old /sse/ MCP endpoint into stdio.",
+      "Set up X Research Tools through the legacy bridge."
+    ],
+    "brandColor": "#2563EB"
+  }
+}
