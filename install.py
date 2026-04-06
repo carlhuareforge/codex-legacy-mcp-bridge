@@ -7,6 +7,7 @@ import argparse
 import json
 import importlib.util
 import ssl
+import sys
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -268,10 +269,11 @@ def toml_block(server_id: str, script_path: Path, config_path: Path) -> str:
     begin = f"{MARKER_PREFIX}{server_id}"
     end = f"# END codex-legacy-mcp-bridge:{server_id}"
     args = json.dumps([str(script_path), "--config", str(config_path)])
+    python_executable = json.dumps(sys.executable)
     lines = [
         begin,
         f"[mcp_servers.{server_id}]",
-        'command = "python3"',
+        f"command = {python_executable}",
         f"args = {args}",
         "startup_timeout_sec = 5",
         "tool_timeout_sec = 120",
