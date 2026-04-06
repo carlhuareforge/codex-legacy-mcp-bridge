@@ -153,6 +153,7 @@ def _legacy_probe(upstream_url: str) -> tuple[dict[str, Any], list[dict[str, Any
             tools = payload["result"]["tools"]
 
     response.close()
+    initialize_result["capabilities"] = {"tools": {"listChanged": True}}
     return initialize_result, tools
 
 
@@ -272,7 +273,7 @@ def toml_block(server_id: str, script_path: Path, config_path: Path) -> str:
         f"[mcp_servers.{server_id}]",
         'command = "python3"',
         f"args = {args}",
-        "startup_timeout_sec = 120",
+        "startup_timeout_sec = 5",
         "tool_timeout_sec = 120",
         end,
         "",

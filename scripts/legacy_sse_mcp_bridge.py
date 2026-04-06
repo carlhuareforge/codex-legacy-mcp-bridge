@@ -130,8 +130,7 @@ class LegacySSESession:
             request.get("params", {}).get("protocolVersion") or cached.get("protocolVersion") or "2025-06-18"
         )
         cached["protocolVersion"] = requested_version
-        if "capabilities" not in cached:
-            cached["capabilities"] = {"tools": {"listChanged": True}}
+        cached["capabilities"] = {"tools": {"listChanged": True}}
         if "serverInfo" not in cached:
             cached["serverInfo"] = {"name": "Legacy SSE MCP Bridge", "version": "0.1.0"}
         return {"jsonrpc": "2.0", "id": request.get("id"), "result": cached}
@@ -140,6 +139,22 @@ class LegacySSESession:
         if self.cached_tools is None:
             return None
         return {"jsonrpc": "2.0", "id": request.get("id"), "result": {"tools": self.cached_tools}}
+
+    @staticmethod
+    def make_empty_response(request: dict[str, Any]) -> dict[str, Any] | None:
+        method = request.get("method")
+        request_id = request.get("id")
+        if request_id is None:
+            return None
+        if method == "ping":
+            return {"jsonrpc": "2.0", "id": request_id, "result": {}}
+        if method == "prompts/list":
+            return {"jsonrpc": "2.0", "id": request_id, "result": {"prompts": []}}
+        if method == "resources/list":
+            return {"jsonrpc": "2.0", "id": request_id, "result": {"resources": []}}
+        if method == "resources/templates/list":
+            return {"jsonrpc": "2.0", "id": request_id, "result": {"resourceTemplates": []}}
+        return None
 
     def close(self) -> None:
         with self._lock:
@@ -330,6 +345,10 @@ def main() -> int:
                 if cached_response is not None:
                     writer.send(cached_response)
                     continue
+            empty_response = session.make_empty_response(message)
+            if empty_response is not None:
+                writer.send(empty_response)
+                continue
 
             try:
                 session.send(message)
