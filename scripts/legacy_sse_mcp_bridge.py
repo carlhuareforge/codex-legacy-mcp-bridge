@@ -34,6 +34,8 @@ def load_config(path: str) -> dict[str, Any]:
     payload.setdefault("connect_timeout_sec", 30)
     payload.setdefault("read_timeout_sec", 300)
     payload.setdefault("request_timeout_sec", 120)
+    payload.setdefault("cached_initialize_result", None)
+    payload.setdefault("cached_tools", None)
     return payload
 
 
@@ -101,6 +103,8 @@ class LegacySSESession:
         self.request_timeout_sec = float(config["request_timeout_sec"])
         self.writer = writer
         self.ssl_context = build_ssl_context()
+        self.cached_initialize_result = config.get("cached_initialize_result")
+        self.cached_tools = config.get("cached_tools")
 
         self._lock = threading.Lock()
         self._endpoint_ready = threading.Condition(self._lock)
@@ -119,6 +123,23 @@ class LegacySSESession:
             self._initialize_request = message
         elif method == "notifications/initialized":
             self._initialized_notification = message
+
+    def make_initialize_response(self, request: dict[str, Any]) -> dict[str, Any]:
+        cached = dict(self.cached_initialize_result or {})
+        requested_version = (
+            request.get("params", {}).get("protocolVersion") or cached.get("protocolVersion") or "2025-06-18"
+        )
+        cached["protocolVersion"] = requested_version
+        if "capabilities" not in cached:
+            cached["capabilities"] = {"tools": {"listChanged": True}}
+        if "serverInfo" not in cached:
+            cached["serverInfo"] = {"name": "Legacy SSE MCP Bridge", "version": "0.1.0"}
+        return {"jsonrpc": "2.0", "id": request.get("id"), "result": cached}
+
+    def make_tools_list_response(self, request: dict[str, Any]) -> dict[str, Any] | None:
+        if self.cached_tools is None:
+            return None
+        return {"jsonrpc": "2.0", "id": request.get("id"), "result": {"tools": self.cached_tools}}
 
     def close(self) -> None:
         with self._lock:
@@ -301,6 +322,14 @@ def main() -> int:
             if method == "exit":
                 LOGGER.info("Received exit notification")
                 break
+            if method == "initialize":
+                writer.send(session.make_initialize_response(message))
+                continue
+            if method == "tools/list":
+                cached_response = session.make_tools_list_response(message)
+                if cached_response is not None:
+                    writer.send(cached_response)
+                    continue
 
             try:
                 session.send(message)
